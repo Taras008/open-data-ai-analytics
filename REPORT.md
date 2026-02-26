@@ -193,7 +193,7 @@ feature/readme-conflict-2
 
 Це демонструє роботу Git у ситуаціях, коли кілька розробників змінюють один файл.
 
-![alt text](<Знімок екрана 2026-02-26 о 12.21.18.png>)
+<img width="946" height="620" alt="Знімок екрана 2026-02-26 о 12 21 18" src="https://github.com/user-attachments/assets/6fc99732-8397-49e6-b2f7-0df6d1db81dd" />
 
 8. CHANGELOG
 
