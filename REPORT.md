@@ -2,6 +2,8 @@
 
 Open Data AI Analytics
 
+посилання на Github: https://github.com/Taras008/open-data-ai-analytics
+
 Мета роботи
 
 Метою роботи було створення репозиторію з використанням Git та GitHub для аналізу відкритих державних даних.
