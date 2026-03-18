@@ -1,0 +1,68 @@
+name: CI (modules)
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+  workflow_dispatch:
+    inputs:
+      module:
+        description: "Який модуль запускати"
+        required: true
+        default: "all"
+        type: choice
+        options:
+          - all
+          - data_load
+          - data_quality_analysis
+          - data_research
+          - visualization
+
+jobs:
+  run-modules:
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        module: [data_load, data_quality_analysis, data_research, visualization]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Create artifact directories
+        run: |
+          mkdir -p artifacts/${{ matrix.module }}
+          mkdir -p data/raw data/processed reports/figures
+
+      - name: Run module
+        if: github.event_name != 'workflow_dispatch' || github.event.inputs.module == 'all' || github.event.inputs.module == matrix.module
+        run: |
+          echo "Running module: ${{ matrix.module }}"
+          python src/${{ matrix.module }}.py > artifacts/${{ matrix.module }}/run.log 2>&1
+
+      - name: Copy generated files
+        if: github.event_name != 'workflow_dispatch' || github.event.inputs.module == 'all' || github.event.inputs.module == matrix.module
+        run: |
+          cp -r reports/figures artifacts/${{ matrix.module }}/figures 2>/dev/null || true
+          cp -r data/processed artifacts/${{ matrix.module }}/processed 2>/dev/null || true
+
+      - name: Upload artifacts
+        if: github.event_name != 'workflow_dispatch' || github.event.inputs.module == 'all' || github.event.inputs.module == matrix.module
+        uses: actions/upload-artifact@v4
+        with:
+          name: artifacts-${{ matrix.module }}
+          path: artifacts/${{ matrix.module }}
