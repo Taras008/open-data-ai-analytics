@@ -31,18 +31,21 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
+      - name: Prepare local dataset
+        run: |
+          mkdir -p data/processed
+          cp "/Users/taras/Documents/Labs/open-data-ai-analytics/data/processed/income_by_region_clean.csv" data/processed/income_by_region_clean.csv
+
       - name: Create artifact directories
         run: |
           mkdir -p artifacts/visualization
           mkdir -p reports/figures
-          mkdir -p data/raw data/processed
 
       - name: Run visualization module
         shell: bash
         run: |
           set -o pipefail
           source .venv-ci/bin/activate
-          python src/data_load.py 2>&1 | tee artifacts/visualization/prepare.log
           python src/visualization.py 2>&1 | tee artifacts/visualization/run.log
 
       - name: Copy generated files
