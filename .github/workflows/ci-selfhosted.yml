@@ -3,13 +3,20 @@ name: CI (self-hosted)
 on:
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   run-visualization-local:
-    runs-on: [self-hosted]
+    runs-on: [self-hosted, macOS, X64]
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          clean: true
+          token: ${{ github.token }}
 
       - name: Check Python
         run: |
@@ -27,14 +34,20 @@ jobs:
           mkdir -p reports/figures
 
       - name: Run visualization module
+        shell: bash
         run: |
-          python src/visualization.py > artifacts/visualization/run.log 2>&1
+          set -o pipefail
+          python src/data_load.py 2>&1 | tee artifacts/visualization/prepare.log
+          python src/visualization.py 2>&1 | tee artifacts/visualization/run.log
 
       - name: Copy generated figures
+        if: always()
         run: |
           cp -r reports/figures artifacts/visualization/figures 2>/dev/null || true
+          cp -r data/processed artifacts/visualization/processed 2>/dev/null || true
 
       - name: Upload artifacts
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: artifacts-visualization-selfhosted
