@@ -18,13 +18,16 @@ jobs:
           clean: true
           token: ${{ github.token }}
 
-      - name: Check Python
-        run: |
-          python --version
-          pip --version
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
 
-      - name: Install dependencies
+      - name: Create isolated venv
+        shell: bash
         run: |
+          python -m venv .venv-ci
+          source .venv-ci/bin/activate
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
@@ -32,15 +35,17 @@ jobs:
         run: |
           mkdir -p artifacts/visualization
           mkdir -p reports/figures
+          mkdir -p data/raw data/processed
 
       - name: Run visualization module
         shell: bash
         run: |
           set -o pipefail
+          source .venv-ci/bin/activate
           python src/data_load.py 2>&1 | tee artifacts/visualization/prepare.log
           python src/visualization.py 2>&1 | tee artifacts/visualization/run.log
 
-      - name: Copy generated figures
+      - name: Copy generated files
         if: always()
         run: |
           cp -r reports/figures artifacts/visualization/figures 2>/dev/null || true
