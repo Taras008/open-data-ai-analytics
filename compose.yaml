@@ -1,0 +1,80 @@
+services:
+  data_load:
+    build:
+      context: .
+      dockerfile: docker/data_load.Dockerfile
+    volumes:
+      - ./data:/app/data
+      - ./db:/app/db
+    networks:
+      - analytics-net
+
+  data_quality_analysis:
+    build:
+      context: .
+      dockerfile: docker/data_quality_analysis.Dockerfile
+    depends_on:
+      data_load:
+        condition: service_completed_successfully
+    volumes:
+      - ./data:/app/data
+      - ./reports:/app/reports
+    networks:
+      - analytics-net
+
+  data_research:
+    build:
+      context: .
+      dockerfile: docker/data_research.Dockerfile
+    depends_on:
+      data_load:
+        condition: service_completed_successfully
+    volumes:
+      - ./data:/app/data
+      - ./reports:/app/reports
+    networks:
+      - analytics-net
+
+  visualization:
+    build:
+      context: .
+      dockerfile: docker/visualization.Dockerfile
+    depends_on:
+      data_load:
+        condition: service_completed_successfully
+      data_research:
+        condition: service_completed_successfully
+    volumes:
+      - ./data:/app/data
+      - ./reports:/app/reports
+    networks:
+      - analytics-net
+
+  web:
+    build:
+      context: .
+      dockerfile: docker/web.Dockerfile
+    depends_on:
+      data_quality_analysis:
+        condition: service_completed_successfully
+      data_research:
+        condition: service_completed_successfully
+      visualization:
+        condition: service_completed_successfully
+    ports:
+      - "5050:5000"
+    volumes:
+      - ./data:/app/data:ro
+      - ./db:/app/db:ro
+      - ./reports:/app/reports:ro
+    networks:
+      - analytics-net
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5000/health', timeout=2)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+networks:
+  analytics-net:
+    driver: bridge

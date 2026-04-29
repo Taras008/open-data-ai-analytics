@@ -1,11 +1,16 @@
+import json
+from pathlib import Path
+
 import pandas as pd
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import r2_score
 
 DATA_PATH = "data/processed/income_by_region_clean.csv"
+REPORT_PATH = Path("reports/data_research_report.json")
 
 def main():
     df = pd.read_csv(DATA_PATH)
+    REPORT_PATH.parent.mkdir(parents=True, exist_ok=True)
 
     df = df.dropna(subset=["data"]).copy()
 
@@ -40,6 +45,28 @@ def main():
     next_year = int(ua["period"].max()) + 1
     next_pred = model.predict(pd.DataFrame({"period": [next_year]}))[0]
     print("Prediction for", next_year, ":", next_pred)
+
+    report = {
+        "ukraine_years": {
+            "min": int(ua["period"].min()),
+            "max": int(ua["period"].max()),
+        },
+        "last_year": int(last_year),
+        "top_10_regions": top.to_dict(orient="records"),
+        "linear_regression": {
+            "coefficient": float(model.coef_[0]),
+            "intercept": float(model.intercept_),
+            "r2": float(r2_score(y, pred)),
+            "prediction": {
+                "year": int(next_year),
+                "value": float(next_pred),
+            },
+        },
+        "summary_statistics": df["data"].describe().to_dict(),
+    }
+
+    REPORT_PATH.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
+    print("\nSaved research report:", REPORT_PATH)
 
 if __name__ == "__main__":
     main()

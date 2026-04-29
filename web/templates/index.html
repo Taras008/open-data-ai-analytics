@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="uk">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Open Data Analytics</title>
+    <style>
+      body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+        color: #202124;
+        background: #f6f8fb;
+      }
+      header {
+        background: #ffffff;
+        border-bottom: 1px solid #d9e1ec;
+        padding: 24px 32px;
+      }
+      main {
+        max-width: 1180px;
+        margin: 0 auto;
+        padding: 28px 20px 48px;
+      }
+      section {
+        margin-bottom: 28px;
+      }
+      h1, h2, h3 {
+        margin: 0 0 12px;
+      }
+      p {
+        margin: 0;
+        line-height: 1.5;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 16px;
+      }
+      .card {
+        background: #ffffff;
+        border: 1px solid #d9e1ec;
+        border-radius: 8px;
+        padding: 18px;
+      }
+      .metric {
+        font-size: 28px;
+        font-weight: 700;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        background: #ffffff;
+        font-size: 14px;
+      }
+      th, td {
+        border: 1px solid #d9e1ec;
+        padding: 8px;
+        text-align: left;
+      }
+      th {
+        background: #edf2f7;
+      }
+      .table-wrap {
+        overflow-x: auto;
+      }
+      img {
+        display: block;
+        max-width: 100%;
+        background: #ffffff;
+        border: 1px solid #d9e1ec;
+        border-radius: 8px;
+      }
+      code {
+        background: #edf2f7;
+        padding: 2px 5px;
+        border-radius: 4px;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Open Data Analytics</h1>
+      <p>Локальний Docker Workspace для завантаження, перевірки, дослідження та візуалізації відкритих даних.</p>
+    </header>
+    <main>
+      <section class="grid">
+        <article class="card">
+          <h2>Якість даних</h2>
+          <div class="metric">{{ quality.get("rows", 0) }}</div>
+          <p>рядків, {{ quality.get("columns", 0) }} колонок</p>
+        </article>
+        <article class="card">
+          <h2>Пропуски</h2>
+          <div class="metric">{{ quality.get("rows_with_missing_data", 0) }}</div>
+          <p>рядків із пропущеними значеннями</p>
+        </article>
+        <article class="card">
+          <h2>Дублікати</h2>
+          <div class="metric">{{ quality.get("duplicates", 0) }}</div>
+          <p>повторних записів у наборі</p>
+        </article>
+      </section>
+
+      <section class="card">
+        <h2>Результати дослідження</h2>
+        {% set regression = research.get("linear_regression", {}) %}
+        {% set prediction = regression.get("prediction", {}) %}
+        <p>
+          Останній рік у наборі: <code>{{ research.get("last_year", "n/a") }}</code>.
+          Прогноз для {{ prediction.get("year", "n/a") }} року:
+          <code>{{ "%.2f"|format(prediction.get("value", 0)) }}</code>.
+          R2 моделі: <code>{{ "%.4f"|format(regression.get("r2", 0)) }}</code>.
+        </p>
+      </section>
+
+      <section>
+        <h2>Візуалізації</h2>
+        <div class="grid">
+          {% for figure in figures %}
+            <article>
+              <h3>{{ figure }}</h3>
+              <img src="/figures/{{ figure }}" alt="{{ figure }}">
+            </article>
+          {% endfor %}
+        </div>
+      </section>
+
+      <section>
+        <h2>Завантажені дані</h2>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                {% if data_preview %}
+                  {% for column in data_preview[0].keys() %}
+                    <th>{{ column }}</th>
+                  {% endfor %}
+                {% endif %}
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in data_preview %}
+                <tr>
+                  {% for value in row.values() %}
+                    <td>{{ value }}</td>
+                  {% endfor %}
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>
