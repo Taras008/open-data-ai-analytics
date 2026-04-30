@@ -16,43 +16,7 @@
 
 Код основних модулів розміщений у директорії `src/`, а Dockerfile-и винесені в окрему директорію `docker/`.
 
-## Структура проєкту
 
-```text
-open-data-ai-analytics/
-├── compose.yaml
-├── requirements.txt
-├── README.md
-├── data/
-│   ├── raw/
-│   │   └── income_by_region.xlsx
-│   └── processed/
-│       └── income_by_region_clean.csv
-├── db/
-│   └── income.db
-├── docker/
-│   ├── data_load.Dockerfile
-│   ├── data_quality_analysis.Dockerfile
-│   ├── data_research.Dockerfile
-│   ├── visualization.Dockerfile
-│   └── web.Dockerfile
-├── reports/
-│   ├── data_quality_report.json
-│   ├── data_research_report.json
-│   └── figures/
-│       ├── top10_regions.png
-│       └── ua_trend.png
-├── src/
-│   ├── data_load.py
-│   ├── data_quality_analysis.py
-│   ├── data_research.py
-│   └── visualization.py
-└── web/
-    ├── app.py
-    ├── requirements.txt
-    └── templates/
-        └── index.html
-```
 
 ## Як працюють сервіси
 
@@ -193,7 +157,6 @@ compose.yaml
 ./reports:/app/reports
 ```
 
-Логіка така:
 
 1. `data_load` створює CSV і SQLite-базу.
 2. `data_quality_analysis` читає CSV і створює JSON-звіт.
@@ -256,29 +219,6 @@ Swagger-документація FastAPI:
 http://localhost:5050/docs
 ```
 
-## API
-
-FastAPI має такі ендпоїнти:
-
-```text
-GET /
-GET /health
-GET /docs
-GET /api/data-preview
-GET /api/quality
-GET /api/research
-GET /api/figures
-GET /figures/{filename}
-```
-
-Приклади:
-
-```text
-http://localhost:5050/api/quality
-http://localhost:5050/api/research
-http://localhost:5050/api/data-preview
-```
-
 ## Dockerfile-и
 
 Для кожного сервісу створений окремий Dockerfile:
@@ -299,51 +239,7 @@ Web-сервіс використовує власний файл:
 web/requirements.txt
 ```
 
-## Що потрібно показати під час демонстрації
 
-1. Запуск Docker Compose:
-
-```bash
-docker compose up --build
-```
-
-2. Список контейнерів:
-
-```bash
-docker compose ps
-```
-
-3. Згенеровану SQLite-базу:
-
-```text
-db/income.db
-```
-
-4. JSON-звіти:
-
-```text
-reports/data_quality_report.json
-reports/data_research_report.json
-```
-
-5. PNG-графіки:
-
-```text
-reports/figures/ua_trend.png
-reports/figures/top10_regions.png
-```
-
-6. Веб-інтерфейс:
-
-```text
-http://localhost:5050
-```
-
-7. FastAPI Swagger:
-
-```text
-http://localhost:5050/docs
-```
 
 ## Короткий звіт
 
@@ -355,44 +251,3 @@ http://localhost:5050/docs
 
 Основна складність під час виконання полягала в тому, що локальний порт `5000` був зайнятий іншим процесом. Тому для доступу до веб-інтерфейсу було використано порт `5050`.
 
-## Контрольні питання
-
-### Що таке контейнеризація і чим вона відрізняється від віртуалізації?
-
-Контейнеризація - це спосіб запуску застосунку разом із його залежностями в ізольованому середовищі. На відміну від віртуальної машини, контейнер не містить повну операційну систему, а використовує ядро хост-системи. Через це контейнери зазвичай легші та швидше запускаються.
-
-### Для чого використовується Dockerfile?
-
-Dockerfile описує інструкції для створення Docker image: яку базову систему взяти, які файли скопіювати, які залежності встановити і яку команду запускати.
-
-### Для чого використовується Docker Compose?
-
-Docker Compose використовується для запуску кількох контейнерів разом. У файлі `compose.yaml` описуються сервіси, залежності між ними, порти, volumes і networks.
-
-### Що таке Docker image і Docker container?
-
-Docker image - це шаблон або образ, з якого запускається контейнер. Docker container - це вже запущений екземпляр image.
-
-### Для чого потрібні volumes?
-
-Volumes потрібні для збереження даних поза контейнером і для обміну файлами між контейнерами. У цьому проєкті через volumes передаються CSV, база даних, звіти та графіки.
-
-### Для чого потрібні networks?
-
-Networks дозволяють контейнерам взаємодіяти між собою в ізольованій Docker-мережі. У цьому проєкті всі сервіси підключені до `analytics-net`.
-
-### Як організувати взаємодію між контейнерами?
-
-Взаємодію можна організувати через мережу, базу даних, API або спільні volumes. У цьому проєкті використано спільні volumes і SQLite-базу.
-
-### Які переваги дає контейнеризація для DevOps-проєктів?
-
-Контейнеризація спрощує запуск проєкту на різних комп'ютерах, робить середовище передбачуваним, полегшує CI/CD, тестування та розгортання.
-
-### Чому веб-інтерфейс варто виділяти в окремий сервіс?
-
-Окремий web-сервіс легше запускати, оновлювати й масштабувати незалежно від модулів обробки даних. Також він має власні залежності та окрему відповідальність - показ результатів користувачу.
-
-### Які проблеми можуть виникати при запуску кількох контейнерів одночасно?
-
-Можуть виникати конфлікти портів, неправильний порядок запуску сервісів, відсутність потрібних файлів у volumes, проблеми з доступом до Docker daemon або помилки в залежностях контейнерів.
