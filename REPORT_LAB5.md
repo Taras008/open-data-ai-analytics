@@ -34,6 +34,7 @@
 
 Мережеве розгортання Azure було підготовлене в попередній лабораторній роботі за допомогою Terraform і cloud-init.
 
+<img width="1307" height="250" alt="Знімок екрана 2026-05-14 о 12 43 32" src="https://github.com/user-attachments/assets/4e780aa3-18b9-4078-a1b1-d16a6ffab0dc" />
 
 
 ## 2. Створення гілки для лабораторної роботи
@@ -81,11 +82,8 @@ http_requests_total
 http_request_duration_seconds
 ```
 
-**Місце для скріншота 2:** сторінка `http://PUBLIC_IP:5050/metrics`.
+<img width="1304" height="869" alt="Знімок екрана 2026-05-14 о 12 44 30" src="https://github.com/user-attachments/assets/556aa5fb-eb4e-4763-9d45-8fe212d1e372" />
 
-```text
-Вставити скріншот FastAPI /metrics
-```
 
 ## 4. Створення структури monitoring
 
@@ -169,15 +167,8 @@ cAdvisor збирає метрики Docker-контейнерів:
 - стан контейнерів;
 - статистика контейнерів.
 
-**Місце для скріншота 3:** список monitoring-контейнерів.
 
-```bash
-sudo docker compose -f monitoring/docker-compose.monitoring.yml ps
-```
-
-```text
-Вставити скріншот запущених prometheus/grafana/node-exporter/cadvisor
-```
+<img width="1309" height="212" alt="Знімок екрана 2026-05-14 о 12 47 50" src="https://github.com/user-attachments/assets/87e3f9f1-e249-4480-b975-eaf3f2648adc" />
 
 ## 6. Налаштування Prometheus
 
@@ -204,10 +195,8 @@ web:5000/metrics
 ```text
 http://PUBLIC_IP:9090/targets
 ```
+<img width="1312" height="923" alt="Знімок екрана 2026-05-14 о 12 49 04" src="https://github.com/user-attachments/assets/da455cee-d519-4c97-a835-af895e336c6c" />
 
-```text
-Вставити скріншот Prometheus targets, де всі targets мають стан UP
-```
 
 ## 7. Налаштування Grafana
 
@@ -247,11 +236,12 @@ monitoring/grafana/dashboards/open-data-ai-dashboard.json
 
 ## 8. Побудова Grafana dashboard
 
-У Grafana було створено dashboard:
+У Grafana було створено
 
-```text
-Open Data AI Monitoring
-```
+
+<img width="1307" height="565" alt="Знімок екрана 2026-05-14 о 12 51 33" src="https://github.com/user-attachments/assets/a24563ef-b458-4e35-b264-cdf0f7606d08" />
+
+
 
 На dashboard додано панелі:
 
@@ -265,15 +255,11 @@ Open Data AI Monitoring
 
 Ці панелі дозволяють оцінити стан інфраструктури, Docker-контейнерів і самого веб-застосунку.
 
-**Місце для скріншота 6:** Grafana dashboard.
-
 ```text
 http://PUBLIC_IP:3000
 ```
+<img width="1310" height="923" alt="Знімок екрана 2026-05-14 о 12 52 00" src="https://github.com/user-attachments/assets/1d030f52-49cb-462d-a901-871de583d8dd" />
 
-```text
-Вставити скріншот dashboard Open Data AI Monitoring
-```
 
 ## 9. Оновлення Terraform і cloud-init
 
@@ -303,11 +289,6 @@ docker compose -f monitoring/docker-compose.monitoring.yml up -d
 
 Це дозволяє автоматично запускати моніторинг після створення VM.
 
-**Місце для скріншота 7:** Terraform output.
-
-```text
-Вставити скріншот terraform output з app_url, grafana_url, prometheus_url
-```
 
 ## 10. Запуск на Azure VM
 
@@ -343,12 +324,9 @@ sudo docker compose ps -a
 ```bash
 sudo docker compose -f monitoring/docker-compose.monitoring.yml ps
 ```
+основні Docker-контейнери
 
-**Місце для скріншота 8:** основні Docker-контейнери.
-
-```text
-Вставити скріншот sudo docker compose ps -a
-```
+<img width="1310" height="253" alt="Знімок екрана 2026-05-14 о 12 54 07" src="https://github.com/user-attachments/assets/82fca011-e3a1-4c7d-9e73-3e298f1d9fa6" />
 
 ## 11. Перевірка роботи
 
@@ -372,26 +350,6 @@ curl -I http://localhost:3000
 
 Після виконання запитів до застосунку Prometheus починає збирати HTTP-метрики, а Grafana відображає їх на dashboard.
 
-## 12. Що було продемонстровано
-
-Під час демонстрації було показано:
-
-- роботу основного Docker-застосунку;
-- endpoint `/metrics` у FastAPI;
-- Prometheus targets зі станом `UP`;
-- Grafana data source Prometheus;
-- Grafana dashboard з метриками VM, контейнерів і застосунку;
-- список Docker-контейнерів на Azure VM;
-- відкриті порти в Azure NSG.
-
-## 13. Труднощі під час виконання
-
-Під час виконання лабораторної роботи виникли такі труднощі:
-
-- потрібно було переконатися, що Azure VM використовує правильну Git-гілку `lab-5-monitoring`;
-- після оновлення коду потрібно було перезібрати web-контейнер, щоб з'явився endpoint `/metrics`;
-- Grafana dashboard не одразу з'явився, тому потрібно було перевірити provisioning-файли та перезапустити Grafana;
-- для доступу з браузера потрібно було відкрити порти `3000` і `9090` у Network Security Group.
 
 ## Висновок
 
