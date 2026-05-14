@@ -1,10 +1,10 @@
 output "resource_group_name" {
-  description = "Created Resource Group name."
+  description = "Azure Resource Group name."
   value       = azurerm_resource_group.main.name
 }
 
 output "vm_name" {
-  description = "Created Linux VM name."
+  description = "Linux VM name."
   value       = azurerm_linux_virtual_machine.main.name
 }
 
@@ -14,16 +14,11 @@ output "public_ip_address" {
 }
 
 output "ssh_command" {
-  description = "SSH command for checking the VM manually if needed."
+  description = "SSH command to connect to the VM."
   value       = "ssh ${var.admin_username}@${azurerm_public_ip.main.ip_address}"
 }
 
-output "web_url" {
-  description = "URL of the deployed web interface."
+output "app_url" {
+  description = "Application URL."
   value       = "http://${azurerm_public_ip.main.ip_address}:${var.web_port}"
-}
-
-output "swagger_url" {
-  description = "FastAPI Swagger documentation URL."
-  value       = "http://${azurerm_public_ip.main.ip_address}:${var.web_port}/docs"
 }

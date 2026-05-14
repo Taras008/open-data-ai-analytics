@@ -1,3 +1,18 @@
+terraform {
+  required_version = ">= 1.5.0"
+
+  required_providers {
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = "~> 3.116"
+    }
+  }
+}
+
+provider "azurerm" {
+  features {}
+}
+
 locals {
   ssh_public_key = var.admin_ssh_public_key != "" ? var.admin_ssh_public_key : file(pathexpand("~/.ssh/id_rsa.pub"))
 }
@@ -70,6 +85,11 @@ resource "azurerm_network_interface" "main" {
     private_ip_address_allocation = "Dynamic"
     public_ip_address_id          = azurerm_public_ip.main.id
   }
+
+  depends_on = [
+    azurerm_subnet.main,
+    azurerm_public_ip.main
+  ]
 }
 
 resource "azurerm_network_interface_security_group_association" "main" {
@@ -105,12 +125,11 @@ resource "azurerm_linux_virtual_machine" "main" {
   source_image_reference {
     publisher = "Canonical"
     offer     = "0001-com-ubuntu-server-jammy"
-    sku       = "22_04-lts-arm64"
+    sku       = "22_04-lts-gen2"
     version   = "latest"
   }
 
   custom_data = base64encode(templatefile("${path.module}/cloud-init.yaml", {
-    admin_username    = var.admin_username
     repository_url    = var.repository_url
     repository_branch = var.repository_branch
     app_directory     = var.app_directory

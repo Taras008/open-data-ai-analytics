@@ -17,9 +17,9 @@ variable "location" {
 }
 
 variable "vm_size" {
-  description = "Azure Arm64 VM size available for this subscription in eastus."
+  description = "Azure VM size."
   type        = string
-  default     = "Standard_B2ps_v2"
+  default     = "Standard_D2s_v3"
 }
 
 variable "admin_username" {
@@ -35,7 +35,7 @@ variable "admin_ssh_public_key" {
 }
 
 variable "allowed_source_ip" {
-  description = "CIDR allowed to connect via SSH. Use '*' only for lab/demo simplicity."
+  description = "CIDR allowed to connect via SSH. Use '*' only for lab/demo."
   type        = string
   default     = "*"
 }
