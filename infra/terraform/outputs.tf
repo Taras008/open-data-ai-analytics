@@ -22,3 +22,23 @@ output "app_url" {
   description = "Application URL."
   value       = "http://${azurerm_public_ip.main.ip_address}:${var.web_port}"
 }
+
+output "swagger_url" {
+  description = "FastAPI Swagger documentation URL."
+  value       = "http://${azurerm_public_ip.main.ip_address}:${var.web_port}/docs"
+}
+
+output "grafana_url" {
+  description = "Grafana monitoring dashboard URL."
+  value       = "http://${azurerm_public_ip.main.ip_address}:3000"
+}
+
+output "prometheus_url" {
+  description = "Prometheus URL."
+  value       = "http://${azurerm_public_ip.main.ip_address}:9090"
+}
+
+output "prometheus_targets_url" {
+  description = "Prometheus targets page URL."
+  value       = "http://${azurerm_public_ip.main.ip_address}:9090/targets"
+}

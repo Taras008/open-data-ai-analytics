@@ -1,4 +1,5 @@
 fastapi
 jinja2
 pandas
+prometheus-fastapi-instrumentator
 uvicorn[standard]

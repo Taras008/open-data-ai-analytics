@@ -354,3 +354,136 @@ http://localhost:5050/docs
 
 Основна складність під час виконання полягала в тому, що локальний порт `5000` був зайнятий іншим процесом. Тому для доступу до веб-інтерфейсу було використано порт `5050`.
 
+## Лабораторна 5: Prometheus та Grafana
+
+Для моніторингу Docker-проєкту додано каталог:
+
+```text
+monitoring/
+├── docker-compose.monitoring.yml
+├── prometheus/
+│   └── prometheus.yml
+└── grafana/
+    ├── dashboards/
+    │   └── open-data-ai-dashboard.json
+    └── provisioning/
+        ├── dashboards/
+        │   └── dashboard.yml
+        └── datasources/
+            └── prometheus.yml
+```
+
+Моніторинговий стек містить:
+
+- `prometheus` - збирає метрики;
+- `grafana` - показує дашборд;
+- `node-exporter` - експортує метрики Linux VM;
+- `cadvisor` - експортує метрики Docker-контейнерів;
+- FastAPI endpoint `/metrics` у сервісі `web`.
+
+Prometheus збирає метрики з:
+
+```text
+prometheus:9090
+node-exporter:9100
+cadvisor:8080
+web:5000/metrics
+```
+
+### Порти
+
+Для Azure NSG у Terraform додано:
+
+```text
+5050 - web interface
+3000 - Grafana
+9090 - Prometheus
+22   - SSH
+```
+
+Після розгортання сервіси доступні:
+
+```text
+http://PUBLIC_IP:5050          - застосунок
+http://PUBLIC_IP:5050/metrics  - метрики FastAPI
+http://PUBLIC_IP:3000          - Grafana
+http://PUBLIC_IP:9090/targets  - Prometheus targets
+```
+
+Логін Grafana за замовчуванням:
+
+```text
+admin
+admin
+```
+
+### Запуск на вже створеній Azure VM
+
+Спочатку потрібно оновити код на VM:
+
+```bash
+cd /opt/open-data-ai-analytics
+sudo git pull
+```
+
+Потім перезапустити основний Docker-проєкт:
+
+```bash
+sudo docker compose up --build -d
+```
+
+Після цього запустити моніторинг:
+
+```bash
+sudo docker compose -f monitoring/docker-compose.monitoring.yml up -d
+```
+
+Перевірити контейнери:
+
+```bash
+sudo docker compose ps -a
+sudo docker compose -f monitoring/docker-compose.monitoring.yml ps
+```
+
+Перевірити метрики:
+
+```bash
+curl http://localhost:5050/metrics
+curl http://localhost:9090/-/ready
+```
+
+### Оновлення Terraform для відкриття портів
+
+У Cloud Shell потрібно перейти в Terraform-каталог:
+
+```bash
+cd open-data-ai-analytics/infra/terraform
+git pull
+terraform fmt
+terraform validate
+terraform plan
+terraform apply
+```
+
+Це оновить Network Security Group і відкриє порти `3000` та `9090`.
+
+### Що показати на захисті
+
+Потрібно показати:
+
+- список контейнерів основного застосунку;
+- список контейнерів моніторингу;
+- сторінку Prometheus targets:
+
+```text
+http://PUBLIC_IP:9090/targets
+```
+
+- Grafana data source Prometheus;
+- Grafana dashboard `Open Data AI Monitoring`;
+- панелі CPU VM, RAM VM, кількість контейнерів, CPU/RAM web-контейнера, FastAPI request rate;
+- метрики застосунку:
+
+```text
+http://PUBLIC_IP:5050/metrics
+```

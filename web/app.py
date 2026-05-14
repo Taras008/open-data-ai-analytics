@@ -6,6 +6,7 @@ import pandas as pd
 from fastapi import FastAPI, Request
 from fastapi.responses import FileResponse
 from fastapi.templating import Jinja2Templates
+from prometheus_fastapi_instrumentator import Instrumentator
 
 BASE_DIR = Path(__file__).resolve().parent
 APP_DIR = Path("/app")
@@ -20,6 +21,7 @@ app = FastAPI(
     version="1.0.0",
 )
 templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
+Instrumentator().instrument(app).expose(app)
 
 
 def read_json(path: Path) -> dict:

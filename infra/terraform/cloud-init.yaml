@@ -25,3 +25,4 @@ runcmd:
   - cd ${app_directory} && if [ -f compose.yaml ]; then docker compose up -d --build; fi
   - cd ${app_directory}/docker && if [ -f docker-compose.yml ]; then docker compose up -d --build; fi
   - cd ${app_directory}/docker && if [ -f compose.yaml ]; then docker compose up -d --build; fi
+  - cd ${app_directory} && if [ -f monitoring/docker-compose.monitoring.yml ]; then docker compose -f monitoring/docker-compose.monitoring.yml up -d; fi
