@@ -13,6 +13,11 @@ output "public_ip_address" {
   value       = azurerm_public_ip.main.ip_address
 }
 
+output "ssh_command" {
+  description = "SSH command for checking the VM manually if needed."
+  value       = "ssh ${var.admin_username}@${azurerm_public_ip.main.ip_address}"
+}
+
 output "web_url" {
   description = "URL of the deployed web interface."
   value       = "http://${azurerm_public_ip.main.ip_address}:${var.web_port}"
@@ -21,9 +26,4 @@ output "web_url" {
 output "swagger_url" {
   description = "FastAPI Swagger documentation URL."
   value       = "http://${azurerm_public_ip.main.ip_address}:${var.web_port}/docs"
-}
-
-output "ssh_command" {
-  description = "SSH command for checking the VM manually if needed."
-  value       = "ssh ${var.admin_username}@${azurerm_public_ip.main.ip_address}"
 }

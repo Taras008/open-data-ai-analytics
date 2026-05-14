@@ -13,13 +13,13 @@ variable "resource_group_name" {
 variable "location" {
   description = "Azure region where resources will be created."
   type        = string
-  default     = "westeurope"
+  default     = "eastus"
 }
 
 variable "vm_size" {
-  description = "Azure VM size. B2s is safer for building Python Docker images than B1s."
+  description = "Azure Arm64 VM size available for this subscription in eastus."
   type        = string
-  default     = "Standard_B2s"
+  default     = "Standard_B2ps_v2"
 }
 
 variable "admin_username" {
@@ -29,13 +29,13 @@ variable "admin_username" {
 }
 
 variable "admin_ssh_public_key" {
-  description = "SSH public key content. If empty, Terraform reads ~/.ssh/id_rsa.pub in Cloud Shell."
+  description = "SSH public key content. If empty, Terraform reads ~/.ssh/id_rsa.pub."
   type        = string
   default     = ""
 }
 
 variable "allowed_source_ip" {
-  description = "CIDR allowed to connect via SSH. Use '*' for lab/demo simplicity."
+  description = "CIDR allowed to connect via SSH. Use '*' only for lab/demo simplicity."
   type        = string
   default     = "*"
 }

@@ -1,18 +1,3 @@
-terraform {
-  required_version = ">= 1.5.0"
-
-  required_providers {
-    azurerm = {
-      source  = "hashicorp/azurerm"
-      version = "~> 3.116"
-    }
-  }
-}
-
-provider "azurerm" {
-  features {}
-}
-
 locals {
   ssh_public_key = var.admin_ssh_public_key != "" ? var.admin_ssh_public_key : file(pathexpand("~/.ssh/id_rsa.pub"))
 }
@@ -94,6 +79,7 @@ resource "azurerm_network_interface_security_group_association" "main" {
 
 resource "azurerm_linux_virtual_machine" "main" {
   name                = "${var.project_name}-vm"
+  computer_name       = "${var.project_name}-vm"
   location            = azurerm_resource_group.main.location
   resource_group_name = azurerm_resource_group.main.name
   size                = var.vm_size
@@ -124,6 +110,7 @@ resource "azurerm_linux_virtual_machine" "main" {
   }
 
   custom_data = base64encode(templatefile("${path.module}/cloud-init.yaml", {
+    admin_username    = var.admin_username
     repository_url    = var.repository_url
     repository_branch = var.repository_branch
     app_directory     = var.app_directory
