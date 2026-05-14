@@ -1,251 +1,396 @@
-Назва проєкту
+# Звіт до лабораторної роботи 4
 
-Open Data AI Analytics
+## Тема
 
-посилання на Github: https://github.com/Taras008/open-data-ai-analytics
+Інфраструктура як код. Розгортання Docker-проєкту в Microsoft Azure за допомогою Terraform, Azure Cloud Shell та cloud-init.
 
-Мета роботи
+## Мета роботи
 
-Метою роботи було створення репозиторію з використанням Git та GitHub для аналізу відкритих державних даних.
-У проєкті реалізовано повний процес розробки з використанням feature-гілок, pull request, merge, вирішення конфліктів та створення версій.
+Метою лабораторної роботи було навчитися розгортати контейнеризований застосунок у хмарному середовищі Microsoft Azure без ручного налаштування сервера. Для цього було використано підхід Infrastructure as Code, де вся інфраструктура описується у вигляді коду Terraform, а початкова конфігурація Linux VM виконується автоматично через cloud-init.
 
-Дані для аналізу були взяті з порталу відкритих даних України.
+У межах роботи потрібно було:
 
-Джерело даних
+- використовувати Azure Cloud Shell як основне середовище керування;
+- створити Azure-інфраструктуру за допомогою Terraform;
+- автоматизувати налаштування Linux VM через cloud-init;
+- встановити Docker на VM без ручного налаштування;
+- запустити Docker Compose проєкт у хмарі;
+- зробити веб-інтерфейс доступним через public IP;
+- після демонстрації видалити ресурси через Terraform.
 
-Портал відкритих даних України:
-https://data.gov.ua/
+## 1. Початковий стан проєкту
 
-Використаний датасет:
-Наявний дохід населення по регіонах (млн грн)
+Перед початком цієї лабораторної роботи вже був підготовлений контейнеризований Docker-проєкт. Він складається з кількох сервісів, які описані у файлі `compose.yaml`.
 
-Ресурс:
-https://data.gov.ua/dataset/d2e7708a-e121-4607-b600-525117cdca6c/resource/d8a12813-3b88-47f8-8b05-06e3a008553e/download/95-naiavnii-dokhid-naselennia-po-regionakh-mln-grn.xlsx
+Основні сервіси:
 
-Датасет містить інформацію про дохід населення по регіонах України за період 2005–2021 років.
+- `data_load` - підготовка даних і створення SQLite-бази;
+- `data_quality_analysis` - перевірка якості даних;
+- `data_research` - базове дослідження даних;
+- `visualization` - побудова графіків;
+- `web` - FastAPI веб-інтерфейс для перегляду результатів.
 
-Структура проєкту
-open-data-ai-analytics
-│
-├── data
-│   ├── raw
-│   └── processed
-│
-├── notebooks
-│
-├── reports
-│   └── figures
-│
-├── src
-│   ├── data_load.py
-│   ├── data_quality_analysis.py
-│   ├── data_research.py
-│   └── visualization.py
-│
-├── README.md
-├── CHANGELOG.md
-└── REPORT.md
-Опис виконаної роботи
-1. Створення репозиторію
+Сервіси `data_load`, `data_quality_analysis`, `data_research` і `visualization` працюють як одноразові job-контейнери. Вони запускаються, виконують свою задачу і завершуються зі статусом `Exited (0)`. Це означає, що вони не впали, а успішно завершили роботу.
 
-Було створено GitHub-репозиторій:
+Постійно працює тільки контейнер `web`, бо саме він обслуговує HTTP-запити користувача.
 
-open-data-ai-analytics
+Веб-сервіс працює на порті:
 
-Додано базову структуру проєкту:
+```text
+5050
+```
 
-README.md
+## 2. Створення окремої гілки
 
-.gitignore
+Для виконання лабораторної роботи було створено окрему Git-гілку:
 
-data/
+```text
+lab-terraform-azure
+```
 
-notebooks/
 
-src/
+## 3. Структура інфраструктурної частини
 
-reports/figures/
+Для опису Azure-інфраструктури було створено каталог:
 
-Файл .gitignore було налаштовано для виключення:
+```text
+infra/terraform/
+```
 
-__pycache__/
+Структура каталогу:
 
-.venv
+```text
+infra/terraform/
+├── main.tf
+├── variables.tf
+├── outputs.tf
+├── cloud-init.yaml
+└── .gitignore
+```
 
-.env
+Призначення файлів:
 
-.ipynb_checkpoints
+- `main.tf` - опис Azure-ресурсів;
+- `variables.tf` - змінні конфігурації;
+- `outputs.tf` - значення, які Terraform виводить після створення ресурсів;
+- `cloud-init.yaml` - сценарій автоматичного налаштування VM;
+- `.gitignore` - виключення Terraform state-файлів і службових файлів.
 
-великих файлів з папки data/raw/
+## 4. Опис ресурсів Azure у Terraform
 
-2. Модуль завантаження даних (data_load)
+У файлі `main.tf` було описано створення повної мінімальної Azure-інфраструктури для запуску Docker-проєкту.
 
-Було створено гілку:
+Terraform створює такі ресурси:
 
-feature/data_load
+- Resource Group;
+- Virtual Network;
+- Subnet;
+- Public IP;
+- Network Security Group;
+- Network Interface;
+- Linux Virtual Machine.
 
-У цій гілці реалізовано скрипт:
+Resource Group використовується як контейнер для всіх ресурсів лабораторної роботи.
 
-src/data_load.py
+Virtual Network і Subnet створюють приватну мережу для VM.
 
-Функціональність скрипта:
+Public IP потрібен для доступу до веб-інтерфейсу з браузера.
 
-завантажує XLSX файл з порталу data.gov.ua
+Network Security Group керує вхідним трафіком до VM.
 
-очищає службові рядки
+Network Interface підключає VM до subnet і public IP.
 
-перетворює типи даних
+Linux VM є сервером, на якому запускається Docker-проєкт.
 
-зберігає оброблений файл у
+## 5. Налаштування портів
 
-data/processed/income_by_region_clean.csv
+У Network Security Group було відкрито потрібні порти:
 
-Після завершення роботи було створено Pull Request та виконано merge у main.
+```text
+22   - SSH-доступ до VM
+5050 - веб-інтерфейс FastAPI-застосунку
+```
 
-3. Перевірка якості даних (data_quality_analysis)
+Порт `22` потрібен для технічної перевірки VM через SSH.
 
-Було створено гілку:
+Порт `5050` потрібен для доступу до веб-застосунку через браузер:
 
-feature/data_quality_analysis
+## 6. Змінні Terraform
 
-У модулі реалізовано перевірку:
+У файлі `variables.tf` було винесено основні параметри, щоб їх можна було змінювати без редагування всієї Terraform-конфігурації.
 
-розмір датасету
+Основні змінні:
 
-список колонок
+- `project_name` - префікс назв ресурсів;
+- `resource_group_name` - назва Resource Group;
+- `location` - Azure-регіон;
+- `vm_size` - розмір VM;
+- `admin_username` - користувач Linux VM;
+- `web_port` - порт веб-застосунку;
+- `repository_url` - URL GitHub-репозиторію;
+- `repository_branch` - гілка, яку потрібно розгорнути;
+- `app_directory` - каталог застосунку на VM.
 
-пропущені значення
+Під час запуску в Azure було використано регіон і розмір VM, доступні в поточній Azure subscription.
 
-дублікати
+Наприклад:
 
-типи даних
+```hcl
+location = "eastus"
+vm_size  = "Standard_D2s_v3"
+```
 
-діапазон років
+Для x64 VM використовується Ubuntu image:
 
-кількість регіонів
+```hcl
+source_image_reference {
+  publisher = "Canonical"
+  offer     = "0001-com-ubuntu-server-jammy"
+  sku       = "22_04-lts-gen2"
+  version   = "latest"
+}
+```
 
-Це дозволило оцінити якість даних перед аналізом.
+## 7. Outputs Terraform
 
-Після завершення змін гілку було об’єднано з main.
+У файлі `outputs.tf` було налаштовано виведення важливої інформації після створення інфраструктури:
 
-4. Дослідницький аналіз даних (data_research)
+- назва Resource Group;
+- назва VM;
+- public IP;
+- SSH-команда;
+- URL застосунку.
 
-Було створено гілку:
+Після `terraform apply` можна виконати:
 
-feature/data_research
+```bash
+terraform output
+```
 
-У цьому модулі виконано:
+і отримати URL:
 
-аналіз доходів населення
+```text
+http://PUBLIC_IP:5050
+```
 
-визначення регіонів з найбільшим доходом
 
-аналіз часової динаміки
+## 8. Автоматизація через cloud-init
 
-Також було побудовано просту модель машинного навчання:
+Для автоматичного налаштування VM було використано `cloud-init`.
 
-LinearRegression
+Файл:
 
-Модель оцінює тренд доходу населення України та виконує прогноз.
+```text
+infra/terraform/cloud-init.yaml
+```
 
-Було отримано значення R² ≈ 0.87, що свідчить про достатньо хороший опис тренду.
+передається у VM через параметр `custom_data`.
 
-5. Візуалізація даних
+Під час першого запуску VM cloud-init виконує такі дії:
 
-Було створено гілку:
+1. Оновлює пакети.
+2. Встановлює `git`, `curl`, `ca-certificates`, `gnupg`.
+3. Встановлює Docker.
+4. Запускає і вмикає Docker service.
+5. Додає користувача `azureuser` до групи Docker.
+6. Клонує GitHub-репозиторій.
+7. Перемикається на потрібну гілку.
+8. Переходить у каталог застосунку.
+9. Запускає Docker Compose.
 
-feature/visualization
+Основна команда запуску застосунку:
 
-У цьому модулі реалізовано:
+```bash
+docker compose up -d --build
+```
 
-побудову графіка топ-10 регіонів за доходом
+Завдяки цьому після створення VM не потрібно вручну встановлювати Docker або копіювати файли проєкту на сервер.
 
-виключення агрегованого значення "Україна"
+## 9. Робота в Azure Cloud Shell
 
-збереження графіків у папку
+Усі Terraform-команди виконувалися в Azure Cloud Shell. Це відповідає умові лабораторної роботи, оскільки локальний комп'ютер не використовується як машина керування.
 
-reports/figures
+Було відкрито Azure Portal і запущено Cloud Shell у режимі PowerShell.
 
-Для побудови графіків використано бібліотеку matplotlib.
+Далі було виконано:
 
-6. Робота з Pull Request
+```powershell
+cd /home/taras/open-data-ai-analytics
+git pull
+cd infra/terraform
+```
 
-Для кожного модуля було створено окрему feature-гілку.
+Перед запуском було перевірено `terraform.tfvars`, де вказано:
 
-Workflow виглядав наступним чином:
+```hcl
+project_name        = "open-data-ai"
+resource_group_name = "rg-open-data-ai"
+location            = "eastus"
+vm_size             = "Standard_D2s_v3"
+admin_username      = "azureuser"
+allowed_source_ip   = "*"
+web_port            = 5050
+repository_url      = "https://github.com/Taras008/open-data-ai-analytics.git"
+repository_branch   = "lab-terraform-azure"
+app_directory       = "/opt/open-data-ai-analytics"
+```
 
-feature branch → commit → push → pull request → merge
+Після цього було виконано команди Terraform:
 
-Це дозволило організувати процес розробки та відстеження змін.
+```powershell
+terraform init -upgrade
+terraform fmt
+terraform validate
+terraform plan -out=tfplan
+terraform apply tfplan
+```
 
-7. Створення merge-conflict
 
-Було створено дві гілки:
+## 10. Створення Azure-ресурсів
 
-feature/readme-conflict-1
-feature/readme-conflict-2
+Після виконання `terraform apply` було створено Resource Group:
 
-У цих гілках змінювалась одна й та сама секція файлу README.md.
+```text
+rg-open-data-ai
+```
 
-Під час merge другої гілки GitHub виявив конфлікт.
+У ній були створені ресурси:
 
-Конфлікт було вирішено вручну шляхом об’єднання змін.
+- Linux VM `open-data-ai-vm`;
+- public IP;
+- virtual network;
+- subnet;
+- network interface;
+- network security group;
+- disk.
 
-Це демонструє роботу Git у ситуаціях, коли кілька розробників змінюють один файл.
+**Місце для скріншота 5:** Resource Group в Azure Portal.
 
-<img width="946" height="620" alt="Знімок екрана 2026-02-26 о 12 21 18" src="https://github.com/user-attachments/assets/6fc99732-8397-49e6-b2f7-0df6d1db81dd" />
 
-8. CHANGELOG
+**Місце для скріншота 6:** сторінка Linux VM.
 
-Було створено файл:
 
-CHANGELOG.md
+## 11. Підключення до VM через SSH
 
-У ньому описані всі основні зміни першої версії проєкту.
+Для перевірки VM було виконано SSH-підключення:
 
-9. Версіонування
+```bash
+ssh azureuser@PUBLIC_IP
+```
 
-Було створено тег:
+Після підключення робочий каталог застосунку знаходився за шляхом:
 
-v0.1.0
+```text
+/opt/open-data-ai-analytics
+```
 
-Цей тег позначає перший стабільний реліз проєкту.
+У цьому каталозі знаходиться код проєкту, який був отриманий з GitHub через cloud-init.
 
-Команди:
 
-git tag -a v0.1.0
-git push origin v0.1.0
-10. Git історія
+## 12. Перевірка cloud-init
 
-Історія комітів відображає повний процес розробки:
+Стан cloud-init було перевірено командою:
 
-створення feature-гілок
+```bash
+sudo cloud-init status --long
+```
 
-pull request
+У результаті було видно, що cloud-init завершив виконання. Навіть якщо Azure показує warning про IMDS, важливо, що немає критичних помилок у полі `errors`.
 
-merge
+Для детальної діагностики можна використовувати:
 
-вирішення конфліктів
+```bash
+sudo tail -100 /var/log/cloud-init-output.log
+```
 
-створення релізу
+## 13. Перевірка Docker Compose
 
-Команда для перегляду:
+На VM було виконано:
 
-git log --oneline --graph --decorate --all
-Висновок
+```bash
+cd /opt/open-data-ai-analytics
+sudo docker compose ps -a
+```
 
-У ході виконання роботи було:
+Результат показав, що:
 
-створено повноцінний Git-проєкт
+- `data_load` завершився зі статусом `Exited (0)`;
+- `data_quality_analysis` завершився зі статусом `Exited (0)`;
+- `data_research` завершився зі статусом `Exited (0)`;
+- `visualization` завершився зі статусом `Exited (0)`;
+- `web` працює у статусі `Up`.
 
-реалізовано модулі аналізу даних
+Це очікувана поведінка. Аналітичні модулі є одноразовими job-контейнерами, а `web` є постійним HTTP-сервісом.
 
-використано workflow feature-branches
+**Місце для скріншота 8:** Docker Compose status.
 
-виконано роботу з Pull Request
 
-створено merge-confлікт та вирішено його
+## 14. Перевірка data_load
 
-створено changelog
+Окремо було перевірено логи сервісу `data_load`:
 
-виконано версіонування проєкту
+```bash
+sudo docker compose logs --tail=100 data_load
+```
+
+У логах було видно, що модуль використав готовий CSV-файл і створив SQLite-базу:
+
+```text
+Using existing processed CSV: data/processed/income_by_region_clean.csv
+Saved database: db/income.db table: income_by_region
+```
+
+Початково при запуску в Azure виникла проблема з отриманням XLSX-файлу із зовнішнього джерела: сервер повертав `HTTP Error 403: Forbidden`. Щоб зробити розгортання стабільним, було додано готовий CSV-файл у репозиторій, а `data_load` було змінено так, щоб він спочатку використовував існуючий CSV.
+
+Це зробило cloud deployment незалежним від доступності зовнішнього джерела даних.
+
+
+## 15. Перевірка веб-сервісу
+
+Працездатність FastAPI web-сервісу було перевірено на VM:
+
+```bash
+curl http://localhost:5050/health
+```
+
+Сервіс повернув:
+
+```json
+{"status":"ok"}
+
+
+## 17. Видалення інфраструктури
+
+Після завершення демонстрації ресурси потрібно видалити, щоб не витрачати Azure credit.
+
+Видалення виконується з Azure Cloud Shell у каталозі Terraform:
+
+```powershell
+cd /home/taras/open-data-ai-analytics/infra/terraform
+terraform destroy
+```
+
+Після запиту підтвердження потрібно ввести:
+
+```text
+yes
+```
+
+Якщо Terraform state недоступний, Resource Group можна видалити через Azure CLI:
+
+```powershell
+az group delete --name rg-open-data-ai --yes
+```
+
+
+## Висновок
+
+У результаті лабораторної роботи було реалізовано хмарне розгортання Docker-проєкту в Microsoft Azure за допомогою Terraform і cloud-init.
+
+Terraform дозволив описати всю інфраструктуру як код: Resource Group, мережу, subnet, public IP, NSG, network interface та Linux VM. Це робить розгортання повторюваним і керованим.
+
+Cloud-init автоматизував початкове налаштування Linux VM: встановив Docker, отримав код проєкту з GitHub і запустив Docker Compose. Завдяки цьому не потрібно вручну встановлювати залежності на сервері.
+
+Після розгортання застосунок став доступним через public IP на порті `5050`. Перевірка через Docker Compose показала, що всі модулі успішно виконались, а web-сервіс працює та відповідає на healthcheck-запит.
+
+Таким чином, у лабораторній роботі було виконано повний цикл Infrastructure as Code: опис інфраструктури, автоматичне створення ресурсів, автоматичне налаштування VM, запуск контейнеризованого застосунку та подальше видалення ресурсів.

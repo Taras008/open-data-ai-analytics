@@ -1,0 +1,27 @@
+#cloud-config
+
+package_update: true
+package_upgrade: false
+
+packages:
+  - git
+  - curl
+  - ca-certificates
+  - gnupg
+  - lsb-release
+
+runcmd:
+  - mkdir -p ${app_directory}
+  - if [ ! -d "${app_directory}/.git" ]; then git clone --branch ${repository_branch} ${repository_url} ${app_directory}; fi
+  - cd ${app_directory} && git pull origin ${repository_branch}
+
+  - curl -fsSL https://get.docker.com -o /tmp/get-docker.sh
+  - sh /tmp/get-docker.sh
+  - systemctl enable docker
+  - systemctl start docker
+  - usermod -aG docker azureuser
+
+  - cd ${app_directory} && if [ -f docker-compose.yml ]; then docker compose up -d --build; fi
+  - cd ${app_directory} && if [ -f compose.yaml ]; then docker compose up -d --build; fi
+  - cd ${app_directory}/docker && if [ -f docker-compose.yml ]; then docker compose up -d --build; fi
+  - cd ${app_directory}/docker && if [ -f compose.yaml ]; then docker compose up -d --build; fi
