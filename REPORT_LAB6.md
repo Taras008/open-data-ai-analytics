@@ -31,27 +31,6 @@ GitOps - це підхід, за якого бажаний стан систем
 - розгортання відбувається автоматично;
 - rollback виконується через повернення попереднього стану в Git.
 
-## 2. Початкові умови
-
-Перед виконанням цієї лабораторної роботи вже були виконані попередні етапи:
-
-- Docker-проєкт контейнеризовано;
-- застосунок розгорнуто в Azure VM;
-- інфраструктура описана через Terraform;
-- VM налаштовується через cloud-init;
-- моніторинг реалізовано через Prometheus і Grafana.
-
-Для GitOps було створено окрему гілку:
-
-```text
-lab-6-gitops
-```
-
-**Місце для скріншота 1:** GitHub branch `lab-6-gitops`.
-
-```text
-Вставити скріншот гілки lab-6-gitops у GitHub
-```
 
 ## 3. Структура GitOps-конфігурації
 
@@ -158,12 +137,6 @@ Service відкриває застосунок на порті:
 http://PUBLIC_IP:30080
 ```
 
-**Місце для скріншота 2:** застосунок, відкритий через NodePort.
-
-```text
-Вставити скріншот http://PUBLIC_IP:30080
-```
-
 ## 7. Argo CD Application
 
 У файлі:
@@ -198,18 +171,8 @@ Application:
 ```bash
 kubectl get nodes
 ```
+<img width="572" height="65" alt="Знімок екрана 2026-05-21 о 12 04 00" src="https://github.com/user-attachments/assets/5a46d1d1-922a-4b1c-9360-ce3d30403716" />
 
-Очікуваний результат:
-
-```text
-open-data-ai-vm   Ready
-```
-
-**Місце для скріншота 3:** `kubectl get nodes`.
-
-```text
-Вставити скріншот kubectl get nodes
-```
 
 ## 9. Встановлення Argo CD
 
@@ -227,13 +190,8 @@ argocd
 kubectl get pods -n argocd
 ```
 
-Очікувано pod-и Argo CD мають бути в стані `Running`.
+<img width="859" height="175" alt="Знімок екрана 2026-05-21 о 12 04 30" src="https://github.com/user-attachments/assets/992eefc2-281f-479f-bb73-a3b3dfc03da0" />
 
-**Місце для скріншота 4:** pod-и Argo CD.
-
-```text
-Вставити скріншот kubectl get pods -n argocd
-```
 
 ## 10. Доступ до Argo CD
 
@@ -256,12 +214,6 @@ kubectl -n argocd get secret argocd-initial-admin-secret \
   -o jsonpath="{.data.password}" | base64 -d
 ```
 
-**Місце для скріншота 5:** Argo CD login або Argo CD UI.
-
-```text
-Вставити скріншот Argo CD
-```
-
 ## 11. Перше GitOps-розгортання
 
 Після створення Argo CD Application система автоматично прочитала manifests з:
@@ -282,12 +234,8 @@ Healthy
 ```bash
 kubectl get all -n open-data-ai
 ```
+<img width="779" height="222" alt="Знімок екрана 2026-05-21 о 12 06 41" src="https://github.com/user-attachments/assets/dba8be88-f2dc-441d-b3b9-e635afd899ec" />
 
-**Місце для скріншота 6:** Argo CD Application зі станом `Synced`.
-
-```text
-Вставити скріншот Argo CD Synced / Healthy
-```
 
 ## 12. Автоматичне оновлення
 
@@ -315,13 +263,7 @@ replicas: 2
 GITOPS_RELEASE_MESSAGE
 ```
 
-Після цього зміни було закомічено й запушено:
-
-```bash
-git add gitops/app/deployment.yaml
-git commit -m "Update GitOps deployment"
-git push
-```
+Після цього зміни було закомічено й запушено
 
 Argo CD автоматично виявив зміну в GitHub і синхронізував Kubernetes-кластер без ручного `kubectl apply`.
 
@@ -332,18 +274,7 @@ kubectl get deployment -n open-data-ai
 kubectl get pods -n open-data-ai
 curl http://localhost:30080/health
 ```
-
-**Місце для скріншота 7:** commit у GitHub, який викликав оновлення.
-
-```text
-Вставити скріншот commit/push
-```
-
-**Місце для скріншота 8:** оновлений стан Argo CD після sync.
-
-```text
-Вставити скріншот automatic sync в Argo CD
-```
+<img width="574" height="219" alt="Знімок екрана 2026-05-21 о 12 08 43" src="https://github.com/user-attachments/assets/23355999-3b4f-4da2-98c0-c8f1fd263a94" />
 
 ## 13. Rollback
 
@@ -360,60 +291,8 @@ git push
 
 Це демонструє головну перевагу GitOps: повернення до попередньої версії виконується через Git-історію.
 
-**Місце для скріншота 9:** rollback commit або Argo CD після rollback.
+<img width="1184" height="572" alt="Знімок екрана 2026-05-21 о 12 01 50" src="https://github.com/user-attachments/assets/ce7f512e-489b-4a44-8e54-c5482d91d827" />
 
-```text
-Вставити скріншот rollback
-```
-
-## 14. Сумісність із моніторингом
-
-Після GitOps-оновлення було перевірено, що попередній monitoring stack продовжує працювати.
-
-Перевірено:
-
-```text
-http://PUBLIC_IP:3000
-http://PUBLIC_IP:9090/targets
-```
-
-Prometheus продовжує збирати метрики, Grafana dashboard залишається доступним.
-
-Додатково Prometheus може бачити GitOps-застосунок як target:
-
-```text
-gitops-web
-```
-
-**Місце для скріншота 10:** Grafana dashboard після GitOps-оновлення.
-
-```text
-Вставити скріншот Grafana dashboard
-```
-
-## 15. Що було продемонстровано
-
-Під час виконання лабораторної роботи було продемонстровано:
-
-- встановлений k3s-кластер на Azure VM;
-- встановлений Argo CD;
-- GitHub repository як джерело істини;
-- Kubernetes manifests у папці `gitops/app`;
-- Argo CD Application;
-- автоматичне розгортання застосунку;
-- автоматичне оновлення після commit і push;
-- rollback через Git;
-- сумісність із Prometheus і Grafana.
-
-## 16. Труднощі під час виконання
-
-Під час виконання лабораторної роботи були такі особливості:
-
-- потрібно було підготувати локальний Docker image для k3s;
-- Argo CD працює з Kubernetes manifests, тому застосунок потрібно було описати декларативно;
-- для доступу через браузер потрібно було відкрити NodePort-порти в Azure NSG;
-- потрібно було стежити, щоб Argo CD Application використовував правильну гілку `lab-6-gitops`;
-- для демонстрації оновлення потрібно було виконати зміну саме через Git, а не вручну через `kubectl`.
 
 ## Висновок
 
