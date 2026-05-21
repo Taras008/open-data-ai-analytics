@@ -1,0 +1,23 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: open-data-ai-web
+  namespace: argocd
+  labels:
+    app.kubernetes.io/name: open-data-ai-web
+    app.kubernetes.io/part-of: gitops-lab
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/Taras008/open-data-ai-analytics.git
+    targetRevision: lab-6-gitops
+    path: gitops/app
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: open-data-ai
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

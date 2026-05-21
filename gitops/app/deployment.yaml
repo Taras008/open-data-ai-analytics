@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: open-data-ai-web
+  namespace: open-data-ai
+  labels:
+    app: open-data-ai-web
+    app.kubernetes.io/name: open-data-ai-web
+    app.kubernetes.io/part-of: gitops-lab
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: open-data-ai-web
+  template:
+    metadata:
+      labels:
+        app: open-data-ai-web
+        app.kubernetes.io/name: open-data-ai-web
+    spec:
+      containers:
+        - name: web
+          image: open-data-ai-web:gitops
+          imagePullPolicy: Never
+          ports:
+            - name: http
+              containerPort: 5000
+          env:
+            - name: GITOPS_RELEASE_MESSAGE
+              value: "GitOps release: initial version"
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 5000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 5000
+            initialDelaySeconds: 20
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi

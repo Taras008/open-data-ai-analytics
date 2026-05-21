@@ -1,4 +1,5 @@
 import json
+import os
 import sqlite3
 from pathlib import Path
 
@@ -14,6 +15,7 @@ DATA_PATH = APP_DIR / "data/processed/income_by_region_clean.csv"
 DB_PATH = APP_DIR / "db/income.db"
 REPORTS_DIR = APP_DIR / "reports"
 FIGURES_DIR = REPORTS_DIR / "figures"
+RELEASE_MESSAGE = os.getenv("GITOPS_RELEASE_MESSAGE", "GitOps release: initial version")
 
 app = FastAPI(
     title="Open Data Analytics",
@@ -61,6 +63,7 @@ def index(request: Request):
             "quality": read_json(REPORTS_DIR / "data_quality_report.json"),
             "research": read_json(REPORTS_DIR / "data_research_report.json"),
             "figures": list_figures(),
+            "release_message": RELEASE_MESSAGE,
         },
     )
 
@@ -95,4 +98,4 @@ def figures(filename: str):
 
 @app.get("/health")
 def health():
-    return {"status": "ok"}
+    return {"status": "ok", "release_message": RELEASE_MESSAGE}

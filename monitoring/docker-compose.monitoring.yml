@@ -2,6 +2,8 @@ services:
   prometheus:
     image: prom/prometheus:v2.55.1
     container_name: open-data-ai-prometheus
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     command:
       - "--config.file=/etc/prometheus/prometheus.yml"
       - "--storage.tsdb.path=/prometheus"

@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: open-data-ai-web
+  namespace: open-data-ai
+  labels:
+    app: open-data-ai-web
+    app.kubernetes.io/name: open-data-ai-web
+    app.kubernetes.io/part-of: gitops-lab
+spec:
+  type: NodePort
+  selector:
+    app: open-data-ai-web
+  ports:
+    - name: http
+      protocol: TCP
+      port: 80
+      targetPort: 5000
+      nodePort: 30080

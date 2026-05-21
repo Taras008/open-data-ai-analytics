@@ -55,7 +55,7 @@ variable "repository_url" {
 variable "repository_branch" {
   description = "Git branch deployed by cloud-init."
   type        = string
-  default     = "lab-5-monitoring"
+  default     = "lab-6-gitops"
 }
 
 variable "app_directory" {
