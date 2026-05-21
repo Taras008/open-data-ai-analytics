@@ -42,18 +42,3 @@ output "prometheus_targets_url" {
   description = "Prometheus targets page URL."
   value       = "http://${azurerm_public_ip.main.ip_address}:9090/targets"
 }
-
-output "gitops_app_url" {
-  description = "Kubernetes NodePort URL for the GitOps-managed web application."
-  value       = "http://${azurerm_public_ip.main.ip_address}:30080"
-}
-
-output "argocd_url" {
-  description = "Argo CD HTTP URL."
-  value       = "http://${azurerm_public_ip.main.ip_address}:30880"
-}
-
-output "argocd_https_url" {
-  description = "Argo CD HTTPS URL."
-  value       = "https://${azurerm_public_ip.main.ip_address}:30443"
-}
