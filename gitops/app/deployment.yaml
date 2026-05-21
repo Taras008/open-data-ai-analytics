@@ -8,7 +8,7 @@ metadata:
     app.kubernetes.io/name: open-data-ai-web
     app.kubernetes.io/part-of: gitops-lab
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: open-data-ai-web
@@ -27,7 +27,7 @@ spec:
               containerPort: 5000
           env:
             - name: GITOPS_RELEASE_MESSAGE
-              value: "GitOps release: initial version"
+              value: "GitOps release_2.0"
           readinessProbe:
             httpGet:
               path: /health
